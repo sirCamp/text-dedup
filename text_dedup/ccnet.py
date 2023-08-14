@@ -14,7 +14,7 @@ from typing import List
 
 import numpy as np
 from datasets import Dataset
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 from tqdm import tqdm
 
 from text_dedup import logger
@@ -106,17 +106,20 @@ if __name__ == "__main__":  # pragma: no cover
 
     with timer("Total"):
         with timer("Loading"):
-            ds: Dataset = load_dataset(  # type: ignore
-                path=args.path,
-                name=args.name,
-                data_dir=args.data_dir,
-                data_files=args.data_files,
-                split=args.split,
-                revision=args.revision,
-                cache_dir=args.cache_dir,
-                token=args.use_auth_token,
-                num_proc=os.cpu_count(),
-            )
+            if args.local:
+                ds = load_from_disk(args.path)
+            else:
+                ds = load_dataset(
+                    path=args.path,
+                    name=args.name,
+                    data_dir=args.data_dir,
+                    data_files=args.data_files,
+                    split=args.split,
+                    revision=args.revision,
+                    cache_dir=args.cache_dir,
+                    num_proc=os.cpu_count(),
+                    token=args.use_auth_token,
+                )
 
         def md5_digest_sized(data: bytes) -> bytes:
             return md5_digest(data)[:HASH_SIZE]
