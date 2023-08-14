@@ -8,7 +8,7 @@ from typing import Callable
 
 import datasets
 import numpy as np
-from datasets.load import load_dataset
+from datasets.load import load_dataset, load_from_disk
 from pybloom_live import ScalableBloomFilter
 from tqdm import tqdm
 
@@ -37,17 +37,20 @@ if __name__ == "__main__":  # pragma: no cover
 
     with timer("Total"):
         with timer("Loading"):
-            ds: datasets.Dataset = load_dataset(  # type: ignore
-                path=args.path,
-                name=args.name,
-                data_dir=args.data_dir,
-                data_files=args.data_files,
-                split=args.split,
-                revision=args.revision,
-                cache_dir=args.cache_dir,
-                token=args.use_auth_token,
-                num_proc=os.cpu_count(),
-            )
+            if args.local:
+                ds = load_from_disk(args.path)
+            else:
+                ds = load_dataset(
+                    path=args.path,
+                    name=args.name,
+                    data_dir=args.data_dir,
+                    data_files=args.data_files,
+                    split=args.split,
+                    revision=args.revision,
+                    cache_dir=args.cache_dir,
+                    num_proc=os.cpu_count(),
+                    token=args.use_auth_token,
+                )
 
         hash_func: Callable = {
             "md5": md5_digest,  # type: ignore
